@@ -41,15 +41,13 @@ public class TestServlet extends DispatcherServlet {
             if (handlerMapping instanceof RequestMappingHandlerMapping) {
                 RequestMappingHandlerMapping requestMappingHandlerMapping = (RequestMappingHandlerMapping)handlerMapping;
                 try {
-                    List<Class<?>> classes = PackageLoader.load(basePackage);
+                    List<Class<?>> classes = PackageLoader.getClass(basePackage);
                     List<RequestMappingCollector> collectors = RequestMappingCollector.loadMapping(classes, factory);
-                    collectors.forEach(collector -> {
-                        requestMappingHandlerMapping.registerMapping(
-                                collector.getMappingInfo(),
-                                collector.getHandler(),
-                                collector.getMethod()
-                        );
-                    });
+                    collectors.forEach(collector -> requestMappingHandlerMapping.registerMapping(
+                            collector.getMappingInfo(),
+                            collector.getHandler(),
+                            collector.getMethod()
+                    ));
                 } catch (FileNotFoundException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
