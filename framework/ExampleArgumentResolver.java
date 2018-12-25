@@ -1,9 +1,6 @@
 package framework;
 
 import com.alibaba.fastjson.util.TypeUtils;
-import com.cn.hkvision.model.RoleExample;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.reflection.TypeParameterResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -14,9 +11,6 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,10 +60,15 @@ public class ExampleArgumentResolver implements HandlerMethodArgumentResolver {
 
 						Class<?>[] classes = var.getParameterTypes();
 						String[] paramArray = stringEntry.getValue();
-						int len = paramArray.length;
+						int len = classes.length;
 						if (len == 2) {
-							Object arg0 = TypeUtils.castToJavaBean(paramArray[0], classes[0]);
-							Object arg1 = TypeUtils.castToJavaBean(paramArray[1], classes[1]);
+							Class<?> type = getParameterizeType(exampleClass, name);
+							String[] strings = paramArray[0].split(",");
+							if (strings.length < 2) {
+								throw new IllegalArgumentException("缺少参数");
+							}
+							Object arg0 = TypeUtils.castToJavaBean(strings[0], type);
+							Object arg1 = TypeUtils.castToJavaBean(strings[1], type);
 							ReflectionUtils.invokeMethod(var, criteria, arg0, arg1);
 						} else if (len == 0) {
 							ReflectionUtils.invokeMethod(var, criteria);
