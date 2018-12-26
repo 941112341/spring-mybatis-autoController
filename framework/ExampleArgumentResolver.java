@@ -1,6 +1,7 @@
 package framework;
 
 import com.alibaba.fastjson.util.TypeUtils;
+import com.github.pagehelper.PageHelper;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -24,7 +25,6 @@ public class ExampleArgumentResolver implements HandlerMethodArgumentResolver {
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-
 		return parameter.getParameter().getName().equals("example");
 	}
 
@@ -96,7 +96,18 @@ public class ExampleArgumentResolver implements HandlerMethodArgumentResolver {
 					ReflectionUtils.invokeMethod(or, example, criteria);
 				});
 
+		String order = request.getParameter("order");
+		String distinct = request.getParameter("distinct");
+		if (order != null) {
+			Method setOrder = ReflectionUtils.findMethod(exampleClass, "setOrderByClause", String.class);
+			ReflectionUtils.invokeMethod(setOrder, example, order);
+		}
 
+		if (distinct != null) {
+			Method setDistinct = ReflectionUtils.findMethod(exampleClass, "setDistinct", boolean.class);
+			ReflectionUtils.invokeMethod(setDistinct, example, Boolean.valueOf(distinct));
+		}
+		startPage(request);
 		return example;
 	}
 
@@ -135,5 +146,13 @@ public class ExampleArgumentResolver implements HandlerMethodArgumentResolver {
 				}));
 	}
 
-
+	private void startPage(HttpServletRequest request) {
+		String pageNumStr = request.getParameter("pageNum");
+		String pageSizeStr = request.getParameter("pageSize");
+		if (pageNumStr != null && pageSizeStr != null) {
+			int pageNum = Integer.valueOf(pageNumStr);
+			int pageSize = Integer.valueOf(pageSizeStr);
+			PageHelper.startPage(pageNum, pageSize);
+		}
+	}
 }
